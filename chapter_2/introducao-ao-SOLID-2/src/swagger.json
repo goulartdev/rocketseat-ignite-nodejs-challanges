@@ -1,0 +1,333 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Usuarium",
+    "description": "Usuarium is an API for managing users",
+    "version": "1.0.0",
+    "contact": {
+      "email": "some.email@usuarium.com"
+    }
+  },
+  "components": {
+    "schemas": {
+      "user": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "admin": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "examples": {
+      "user_id": {
+        "summary": "A sample user id",
+        "value": "75378cc5-09ab-4fec-acfb-2dd7559bba80"
+      },
+      "user": {
+        "summary": "A sample user",
+        "value": {
+          "id": "dce20587-0e0b-4e97-8daa-b061c0414820",
+          "name": "Foo Bar",
+          "email": "foo.bar@email.com",
+          "admin": "false",
+          "created_at": "2021-03-29T01:07:56.042Z",
+          "updated_at": "2021-03-29T01:07:56.042Z"
+        }
+      },
+      "user_admin": {
+        "summary": "A sample user",
+        "value": {
+          "id": "75378cc5-09ab-4fec-acfb-2dd7559bba80",
+          "name": "Baz Qux",
+          "email": "baz.qux@email.com",
+          "admin": "true",
+          "created_at": "2021-03-27T05:32:20.044Z",
+          "updated_at": "2021-03-27T07:24:23.157Z"
+        }
+      },
+      "users_list": {
+        "summary": "A sample list of users",
+        "value": [
+          {
+            "id": "dce20587-0e0b-4e97-8daa-b061c0414820",
+            "name": "Foo Bar",
+            "email": "foo.bar@email.com",
+            "admin": "false",
+            "created_at": "2021-03-29T01:07:56.042Z",
+            "updated_at": "2021-03-29T01:07:56.042Z"
+          },
+          {
+            "id": "75378cc5-09ab-4fec-acfb-2dd7559bba80",
+            "name": "Baz Qux",
+            "email": "baz.qux@email.com",
+            "admin": "true",
+            "created_at": "2021-03-27T05:32:20.044Z",
+            "updated_at": "2021-03-27T07:24:23.157Z"
+          }
+        ]
+      }
+    },
+    "parameters": {
+      "user_id_path": {
+        "name": "user_id",
+        "description": "User ID",
+        "in": "path",
+        "required": "true",
+        "examples": {
+          "user_id": {
+            "$ref": "#/components/examples/user_id"
+          }
+        }
+      }
+    },
+    "responses": {
+      "user_not_found": {
+        "description": "User not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error"
+            },
+            "examples": {
+              "user_not_found": {
+                "summary": "User not found error",
+                "value": {
+                  "error": "User not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/users": {
+      "post": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Create user",
+        "description": "Creates a new user",
+        "requestBody": {
+          "description": "Required fields for creating a new user",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "email"
+                ],
+                "example": {
+                  "name": "Foo Bar",
+                  "email": "foo.bar@baz.qux"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/user"
+                },
+                "examples": {
+                  "user": {
+                    "$ref": "#/components/examples/user"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Email already in use",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                },
+                "example": {
+                  "error": "Email already in use"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "List all users",
+        "description": "Return a list with all users. Only admin users can access this route.",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "header",
+            "required": "true",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "examples": {
+              "user_id": {
+                "$ref": "#/components/examples/user_id"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operation performed successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/user"
+                  }
+                },
+                "examples": {
+                  "user_list": {
+                    "$ref": "#/components/examples/users_list"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "User not found or without permission to list all users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                },
+                "examples": {
+                  "user_not_found": {
+                    "summary": "User not found error",
+                    "value": {
+                      "error": "User not found"
+                    }
+                  },
+                  "user_without_permission": {
+                    "summary": "User without permission error",
+                    "value": {
+                      "error": "Only admins can list all users"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{user_id}": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Get user profile",
+        "description": "Returns the profile of a specific user",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/user_id_path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operation performed successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/user"
+                },
+                "examples": {
+                  "user": {
+                    "$ref": "#/components/examples/user"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/user_not_found"
+          }
+        }
+      }
+    },
+    "/users/{user_id}/admin": {
+      "patch": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Makes a user an admin",
+        "description": "Turns a specific user into an admin",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/user_id_path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operation performed successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/user"
+                },
+                "examples": {
+                  "user": {
+                    "$ref": "#/components/examples/user_admin"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/user_not_found"
+          }
+        }
+      }
+    }
+  }
+}
