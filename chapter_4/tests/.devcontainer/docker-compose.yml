@@ -1,0 +1,48 @@
+version: '3'
+
+services:
+  app:
+    container_name: ignite_iv_challange_test_app
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # [Choice] Node.js version: 14, 12, 10
+        VARIANT: 14
+        # On Linux, you may need to update USER_UID and USER_GID below if not your local UID is not 1000.
+        USER_UID: 1000
+        USER_GID: 1000
+    environment: 
+      JWT_SECRET: senhasupersecreta123
+
+    volumes:
+      - ..:/workspace:cached
+      
+    # Overrides default command so things don't shut down after the process ends.
+    command: sleep infinity
+
+    # Runs app on the same network as the database container, allows "forwardPorts" in devcontainer.json function.
+    network_mode: service:db
+
+    # Uncomment the next line to use a non-root user for all processes.
+    # user: node
+
+    # Use "forwardPorts" in **devcontainer.json** to forward an app port locally. 
+    # (Adding the "ports" property to this file will not forward from a Codespace.)
+
+  db:
+    container_name: ignite_iv_challange_test_db
+    image: postgres:latest
+    restart: unless-stopped
+    volumes:
+      - postgres-data-challange:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: docker
+      POSTGRES_USER: postgres
+      POSTGRES_DB: fin_api
+
+    # Add "forwardPorts": ["5432"] to **devcontainer.json** to forward PostgreSQL locally.
+    # (Adding the "ports" property to this file will not forward from a Codespace.)
+
+volumes:
+  postgres-data-challange:
