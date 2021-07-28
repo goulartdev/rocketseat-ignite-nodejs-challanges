@@ -1,0 +1,91 @@
+service:
+  name: ignite_todos
+
+plugins:
+  - serverless-offline
+  - serverless-webpack
+  - serverless-dynamodb-local
+
+provider:
+  name: aws
+  region: sa-east-1
+  runtime: nodejs14.x
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - s3:*
+      Resource: "*"
+
+custom:
+  serverless-offline:
+    httpPort: 3000
+  webpack:
+    webpackConfig: ./webpack.config.js
+    includeModules: true
+  dynamodb:
+    stages:
+      - dev
+      - local
+    start:
+      port: 8000
+      inMemory: true
+      migrate: true
+
+functions:
+  add-todo:
+    handler: src/functions/add-todo.handle
+    events:
+      - http:
+          path: /add-todo/{id}
+          method: POST
+          cors: true
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:Query
+          - dynamodb:PutItem
+        Resource: "arn:aws:dynamodb:${self.provider.region}:*:table/todos"
+  list-todos:
+    handler: src/functions/list-todos.handle
+    events:
+      - http:
+          path: /list-todos/{id}
+          method: GET
+          cors: true
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:Query
+        Resource: "arn:aws:dynamodb:${self.provider.region}:*:table/todos"
+
+resources:
+  Resources:
+    dbCertificates:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: todos
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: userIdIndex
+            KeySchema:
+              - AttributeName: userId
+                KeyType: HASH
+            Projection:
+              ProjectionType: 'ALL'
+            ProvisionedThroughput:
+              ReadCapacityUnits: 5
+              WriteCapacityUnits: 5
